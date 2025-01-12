@@ -3,24 +3,39 @@ import { useRef } from "react"
 import { useNavigate } from "react-router-dom";
 export default function Home(){
     const navigate = useNavigate();
-    const emailRef = useRef();
-    const passwordRef = useRef();    
-    const data = JSON.stringify({
-        email : emailRef?.current?.value,
-        password : passwordRef?.current?.value
-    })
-    const handleLogin = async() =>{ 
-        const response = await axios.post("http://localhost:3000/signin",data,{
-            headers :{
-                "Content-Type" : "application/json"
+    const emailRef = useRef<HTMLInputElement>(null);
+    const passwordRef = useRef<HTMLInputElement>(null);    
+
+    const handleLogin = async() => { 
+        try {
+            const data = {
+                email: emailRef.current?.value,
+                password: passwordRef.current?.value
+            };
+            if (!data.email || !data.password) {
+                alert("Please enter both email and password");
+                return;
             }
-        })
-        if(!response){
-            alert("error")
+
+            const response = await axios.post("http://localhost:3000/signin", data, {
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            });
+
+            if (!response.data?.token) {
+                alert("Invalid response from server");
+                return;
+            }
+
+            localStorage.setItem('token', response.data.token);
+            navigate("/product");
+        } catch (error) {
+            console.error('Login error:', error);
+            alert("Login failed. Please try again.");
         }
-        localStorage.setItem('token',response.data.token);
-        navigate("/product");
     }
+
     return(
         <div style={{
             display : 'flex',
